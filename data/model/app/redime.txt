@@ -1,0 +1,15 @@
+# AI-Powered Security Monitoring & Threat Detection Platform
+
+This project detects anomalous behavior in security logs using machine learning.
+
+## Features
+- Log ingestion (CSV)
+- ML-based anomaly detection
+- Streamlit dashboard
+- Alert system
+
+## Run the project
+```bash
+pip install -r requirements.txt
+python model/train_model.py
+streamlit run app/app.py
