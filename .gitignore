@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+.pytest_cache/
+*.pkl
+pyscure.db
+
+# Node.js
+frontend/node_modules/
+backend/node_modules/
+node_modules/
+.next/
+out/
+build/
+dist/
+coverage/
+
+# Misc
+.DS_Store
+.vscode/
+.idea/
+*.log
+generated_logs.csv
