@@ -17,6 +17,9 @@ This platform is designed to bridge the gap between traditional log monitoring a
 
 *   **🕵️ Real-time Anomaly Detection**: Utilizes Unsupervised Learning (Isolation Forest) to detect outliers in network traffic and user behavior.
 *   **📊 Interactive Dashboard**: Built with **Next.js** and **Recharts** to visualize traffic spikes, threat distribution, and live logs.
+* **🌐 3D Threat Globe Visualization**: Interactive 3D globe using React Three Fiber to visualize global threat distribution with color-coded severity indicators.
+* **🔗 3D Network Topology Graph**: Real-time 3D network relationship mapping with interactive nodes showing server, client, and threat connections.
+* **✨ Advanced 3D Animations**: Smooth animations, hover effects, and auto-rotation for immersive threat monitoring experience.
 *   **⚡ High-Performance Backend**: **FastAPI** drives the API, ensuring millisecond-latency responses for log ingestion and inference.
 *   **📥 Universal Log Ingestion**: capable of parsing standardized system logs and network traffic data.
 *   **🚨 Threat Intelligence**: Automatically classifies events as "Normal", "Suspicious", or "Critical" based on AI confidence scores.
@@ -37,6 +40,9 @@ This platform is designed to bridge the gap between traditional log monitoring a
 *   **TailwindCSS**: Utility-first styling.
 *   **Recharts**: Composable charting library.
 *   **Lucide React**: Beautiful icons.
+* **Three.js**: WebGL 3D graphics library for immersive visualizations.
+* **React Three Fiber**: React renderer for Three.js enabling declarative 3D scenes.
+* **@react-three/drei**: Useful helpers and abstractions for React Three Fiber.
 
 ---
 
