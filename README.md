@@ -13,6 +13,21 @@ A comprehensive, **GSOC-level security monitoring solution** that leverages Arti
 
 This platform is designed to bridge the gap between traditional log monitoring and modern AI-driven threat intelligence. By ingesting system and network logs in real-time, parsing them through an advanced **Isolation Forest** machine learning model, and visualizing the results on a dynamic **Next.js Dashboard**, it empowers security teams to identify zero-day attacks and subtle anomalies that rule-based systems miss.
 
+## 🧩 Architecture Diagram
+
+```mermaid
+flowchart LR
+    Logs[System & Network Logs] --> Ingest[FastAPI Log Ingestion API]
+    Ingest --> DB[(SQLite via SQLAlchemy)]
+    Ingest --> Model[Isolation Forest Anomaly Model]
+    Model --> Scored[Scored Events - Normal / Suspicious / Critical]
+    Scored --> API[REST API]
+    API --> Dashboard[Next.js Dashboard]
+    Dashboard --> Visuals[3D Globe & Network Graph]
+```
+
+The platform ingests raw system and network logs, stores them in a relational database, scores them with an Isolation Forest model, and serves the results to a Next.js dashboard that renders traditional charts and immersive 3D visualizations.
+
 ## 🚀 Key Features
 
 *   **🕵️ Real-time Anomaly Detection**: Utilizes Unsupervised Learning (Isolation Forest) to detect outliers in network traffic and user behavior.
@@ -34,6 +49,17 @@ This platform is designed to bridge the gap between traditional log monitoring a
 *   **Scikit-learn**: Machine Learning (Isolation Forest).
 *   **Pandas & NumPy**: Data manipulation and feature extraction.
 *   **SQLAlchemy & SQLite**: ORM and Database (Easily scalable to PostgreSQL).
+
+*   ### 🤖 Why Isolation Forest?
+
+This project focuses on unsupervised anomaly detection, where labeled attack data is rare and patterns evolve quickly. Isolation Forest is well-suited because:
+
+- It works **without labeled data**, matching real-world security logs where we don't have ground-truth labels for every event.
+- It handles **high-dimensional, noisy features** (IPs, ports, sizes, timings) with robust performance.
+- Compared to density-based methods (like LOF), it **scales better** to large log volumes and is faster to train and infer with.
+- Compared to supervised classifiers, it doesn't overfit to known attack signatures and can surface **previously unseen, zero-day style anomalies**.
+
+These properties make Isolation Forest a practical baseline model for an AI-powered security monitoring platform, while leaving room for future extensions (autoencoders, ensembles, or hybrid rules-plus-ML systems).
 
 ### Frontend
 *   **Next.js 14**: React framework for production.
