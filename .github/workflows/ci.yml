@@ -18,8 +18,7 @@ jobs:
           pip install pytest pytest-cov httpx
       - name: Run backend tests
         run: |
-          cd backend
-          pytest --cov=backend
+          pytest backend/tests/ --cov=backend
 
   frontend:
     runs-on: ubuntu-latest
