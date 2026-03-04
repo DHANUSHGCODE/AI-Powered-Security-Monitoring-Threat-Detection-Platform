@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AlertCircle, Shield, Activity } from 'lucide-react';
-import ThreatGlobe from './ThreatGlobe';
+import dynamic from 'next/dynamic';
+
+const ThreatGlobe = dynamic(() => import('./ThreatGlobe'), { ssr: false });
 
 interface Log {
     id: number;
