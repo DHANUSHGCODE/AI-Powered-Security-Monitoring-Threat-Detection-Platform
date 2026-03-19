@@ -1,4 +1,20 @@
-pandas
-scikit-learn
-joblib
-streamlit
+# Root-level requirements for AI model training scripts
+# Backend API requirements are in backend/requirements.txt
+
+# Core ML & Data
+numpy>=1.24.0
+pandas>=2.0.0
+scikit-learn>=1.3.0
+joblib>=1.3.0
+
+# Backend API
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+sqlalchemy>=2.0.0
+python-multipart>=0.0.6
+httpx>=0.25.0
+requests>=2.31.0
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
