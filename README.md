@@ -83,7 +83,7 @@ Follow these steps to set up the project locally.
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/ai-security-monitor.git
+git clone https://github.com/DHANUSHGCODE/ai-security-monitor.git
 cd ai-security-monitor
 ```
 
@@ -148,7 +148,7 @@ The dashboard will launch at `http://localhost:3000`.
 - [x] Real-time Dashboard
 - [ ] WebSocket Integration for Live Alerts
 - [ ] User Authentication (OAuth2)
-- [ ] Docker Containerization
+- [x] Docker Containerization
 - [ ] Deployment to Cloud (AWS/Render)
 
 ## 🤝 Contributing
