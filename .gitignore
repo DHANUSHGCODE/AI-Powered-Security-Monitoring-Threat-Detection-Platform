@@ -25,3 +25,11 @@ coverage/
 .idea/
 *.log
 generated_logs.csv
+
+# Debug & Temporary Files
+debug_output.txt
+*.debug
+debug_*
+*_debug.*
+tmp/
+temp/
