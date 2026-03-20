@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Sphere, MeshDistortMaterial } from '@react-three/drei';
 import * as THREE from 'three';
@@ -53,7 +53,7 @@ const AnimatedSphere: React.FC<{ position: [number, number, number]; severity: s
 const CentralGlobe: React.FC = () => {
   const meshRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
+  useFrame((_state) => {
     if (meshRef.current) {
       meshRef.current.rotation.y += 0.002;
     }
@@ -81,9 +81,9 @@ const ThreatGlobe3D: React.FC<ThreatGlobe3DProps> = ({ threats }) => {
         <ambientLight intensity={0.5} />
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
-        
+
         <CentralGlobe />
-        
+
         {threats.map((threat) => (
           <AnimatedSphere
             key={threat.id}
@@ -91,7 +91,7 @@ const ThreatGlobe3D: React.FC<ThreatGlobe3DProps> = ({ threats }) => {
             severity={threat.severity}
           />
         ))}
-        
+
         <OrbitControls enableZoom={true} enablePan={true} />
       </Canvas>
     </div>
