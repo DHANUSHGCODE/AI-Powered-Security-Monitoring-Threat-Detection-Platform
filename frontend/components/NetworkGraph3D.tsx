@@ -23,11 +23,6 @@ interface NetworkGraph3DProps {
 
 const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: string | null) => void }> = ({ node, isHovered, onHover }) => {
   const meshRef = useRef<THREE.Mesh>(null);
-  const group = useMemo(() => {
-    const g = new THREE.Group();
-    g.position.set(...node.position);
-    return g;
-  }, [node.position]);
 
   useFrame(() => {
     if (meshRef.current && isHovered) {
@@ -47,7 +42,7 @@ const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: stri
   const nodeSize = isHovered ? 0.3 : 0.2;
 
   return (
-    <primitive object={group}>
+    <group position={node.position}>
       <Sphere
         ref={meshRef}
         args={[nodeSize, 32, 32]}
@@ -73,7 +68,7 @@ const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: stri
           {node.label}
         </Text>
       )}
-    </primitive>
+    </group>
   );
 };
 
