@@ -9,31 +9,43 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: '3.10'
+
       - name: Install backend deps
         run: |
           pip install -r backend/requirements.txt
           pip install pytest pytest-cov httpx
+
+      - name: Generate training data
+        run: |
+          python ai-model/ci_generate_data.py
+
+      - name: Train AI model
+        run: |
+          python ai-model/train_model.py
+
       - name: Run backend tests
         env:
           PYTHONPATH: .
         run: |
-          pytest backend/tests/ --cov=backend
+          pytest backend/tests/ --cov=backend -v
 
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+
       - name: Install frontend deps
         run: |
-          cd frontend
-          npm install --legacy-peer-deps
+          cd frontend && npm install --legacy-peer-deps
+
       - name: Build frontend
         run: |
-          cd frontend
-          npm run build
+          cd frontend && npm run build
