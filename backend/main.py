@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from typing import List
 import joblib
 import pandas as pd
+import numpy as np
 import os
 import sys
 
@@ -13,12 +14,17 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 from database import SecurityLog, SessionLocal, engine, init_db
 import schemas
 
-app = FastAPI(title="AI Security Monitor", description="Real-time Thread Detection API")
+# Fix #5: Corrected typo "Thread" -> "Threat"
+app = FastAPI(title="AI Security Monitor", description="Real-time Threat Detection API")
 
-# Add CORS
+# Fix #4: Added Docker service hostname 'frontend' to CORS origins
+# so the frontend container can reach the backend inside Docker network
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://frontend:3000",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,7 +50,7 @@ def load_model():
         except Exception as e:
             print(f"Failed to load model: {e}")
     else:
-        print("Model file not found. Predictions will not work.")
+        print("Model file not found. Run: python ai-model/train_model.py")
 
 @app.on_event("startup")
 async def startup_event():
@@ -79,23 +85,23 @@ def read_logs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
 def predict_anomaly(request: schemas.PredictionRequest):
     global model, encoders
     if not model or not encoders:
-        raise HTTPException(status_code=503, detail="Model not loaded")
-
+        raise HTTPException(status_code=503, detail="Model not loaded. Run train_model.py first.")
     try:
-        # Preprocess
-        protocol_encoded = encoders['protocol'].transform([request.protocol])[0]
-        # Note: We need to handle unknown labels in production, but for now assuming known
-        
-        # Create DataFrame for prediction
-        # The model was trained on ['bytes', 'protocol_encoded']
-        features = pd.DataFrame([[request.bytes_transferred, protocol_encoded]], columns=['bytes', 'protocol_encoded'])
-        
-        prediction = model.predict(features)[0] # -1 for anomaly, 1 for normal
-        score = model.decision_function(features)[0]
-        
-        is_anomaly = True if prediction == -1 else False
-        
-        return {"is_anomaly": is_anomaly, "anomaly_score": score}
+        # Fix: Handle unseen protocol labels gracefully
+        known_protocols = list(encoders['protocol'].classes_)
+        protocol = request.protocol if request.protocol in known_protocols else known_protocols[0]
+        protocol_encoded = encoders['protocol'].transform([protocol])[0]
 
+        # Create DataFrame for prediction
+        # Model was trained on ['bytes', 'protocol_encoded']
+        features = pd.DataFrame(
+            [[request.bytes_transferred, protocol_encoded]],
+            columns=['bytes', 'protocol_encoded']
+        )
+        prediction = model.predict(features)[0]   # -1 = anomaly, 1 = normal
+        score = float(model.decision_function(features)[0])
+        is_anomaly = prediction == -1
+
+        return {"is_anomaly": is_anomaly, "anomaly_score": score}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
