@@ -1,4 +1,3 @@
-/// <reference types="@react-three/fiber" />
 import React, { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Line, Sphere, Text } from '@react-three/drei';
@@ -24,6 +23,11 @@ interface NetworkGraph3DProps {
 
 const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: string | null) => void }> = ({ node, isHovered, onHover }) => {
   const meshRef = useRef<THREE.Mesh>(null);
+  const group = useMemo(() => {
+    const g = new THREE.Group();
+    g.position.set(...node.position);
+    return g;
+  }, [node.position]);
 
   useFrame(() => {
     if (meshRef.current && isHovered) {
@@ -43,7 +47,7 @@ const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: stri
   const nodeSize = isHovered ? 0.3 : 0.2;
 
   return (
-    <group position={node.position}>
+    <primitive object={group}>
       <Sphere
         ref={meshRef}
         args={[nodeSize, 32, 32]}
@@ -69,7 +73,7 @@ const NetworkNode: React.FC<{ node: Node; isHovered: boolean; onHover: (id: stri
           {node.label}
         </Text>
       )}
-    </group>
+    </primitive>
   );
 };
 
@@ -78,7 +82,6 @@ const NetworkEdge: React.FC<{ start: [number, number, number]; end: [number, num
     new THREE.Vector3(...start),
     new THREE.Vector3(...end)
   ], [start, end]);
-
   return (
     <Line
       points={points}
@@ -92,13 +95,11 @@ const NetworkEdge: React.FC<{ start: [number, number, number]; end: [number, num
 
 const NetworkGraph3D: React.FC<NetworkGraph3DProps> = ({ nodes, edges }) => {
   const [hoveredNode, setHoveredNode] = React.useState<string | null>(null);
-
   const nodeMap = useMemo(() => {
     const map = new Map<string, [number, number, number]>();
     nodes.forEach(node => map.set(node.id, node.position));
     return map;
   }, [nodes]);
-
   return (
     <div className="w-full h-[600px] bg-gray-900 rounded-lg overflow-hidden">
       <Canvas camera={{ position: [0, 0, 10], fov: 60 }}>
@@ -106,7 +107,6 @@ const NetworkGraph3D: React.FC<NetworkGraph3DProps> = ({ nodes, edges }) => {
         <pointLight position={[10, 10, 10]} intensity={1} />
         <pointLight position={[-10, -10, -10]} intensity={0.5} />
         <spotLight position={[0, 10, 0]} angle={0.3} penumbra={1} intensity={0.8} />
-
         {edges.map((edge, index) => {
           const start = nodeMap.get(edge.source);
           const end = nodeMap.get(edge.target);
@@ -115,7 +115,6 @@ const NetworkGraph3D: React.FC<NetworkGraph3DProps> = ({ nodes, edges }) => {
           }
           return null;
         })}
-
         {nodes.map((node) => (
           <NetworkNode
             key={node.id}
@@ -124,7 +123,6 @@ const NetworkGraph3D: React.FC<NetworkGraph3DProps> = ({ nodes, edges }) => {
             onHover={setHoveredNode}
           />
         ))}
-
         <OrbitControls enableZoom={true} enablePan={true} autoRotate autoRotateSpeed={0.5} />
       </Canvas>
     </div>
