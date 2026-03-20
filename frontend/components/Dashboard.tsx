@@ -5,6 +5,9 @@ import dynamic from 'next/dynamic';
 
 const ThreatGlobe = dynamic(() => import('./ThreatGlobe'), { ssr: false });
 
+// Fix #1: Use environment variable for API URL instead of hardcoded localhost
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 interface Log {
     id: number;
     timestamp: string;
@@ -23,7 +26,7 @@ const Dashboard: React.FC = () => {
     useEffect(() => {
         const fetchLogs = async () => {
             try {
-                const response = await fetch('http://localhost:8000/logs/');
+                const response = await fetch(`${API_URL}/logs/`);
                 const data: Log[] = await response.json();
                 setLogs(data);
                 const threats = data.filter(l => l.event_type !== 'Normal').length;
@@ -46,76 +49,87 @@ const Dashboard: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-700 text-white font-sans p-6 backdrop-blur-sm">
-            {/* Glass‑morphism container */}
+            {/* Glass-morphism container */}
             <div className="bg-white/5 rounded-xl border border-white/10 shadow-xl p-6 backdrop-blur-sm">
                 {/* Header */}
                 <header className="mb-8 flex justify-between items-center">
                     <h1 className="text-3xl font-bold flex items-center gap-2">
-                        <Shield className="text-blue-400" /> AI Security Monitor
+                        <Shield className="text-cyan-400" />
+                        AI Security Monitor
                     </h1>
-                    <div className="flex gap-4">
-                        <div className="bg-white/10 p-4 rounded-lg flex items-center gap-3">
-                            <Activity className="text-green-400" />
-                            <div>
-                                <p className="text-gray-300 text-sm">Total Traffic</p>
-                                <p className="text-2xl font-bold">{stats.total}</p>
-                            </div>
+                    <div className="flex gap-6">
+                        <div className="text-center">
+                            <p className="text-xs text-gray-400">Total Traffic</p>
+                            <p className="text-2xl font-bold text-cyan-400">{stats.total}</p>
                         </div>
-                        <div className="bg-white/10 p-4 rounded-lg flex items-center gap-3">
-                            <AlertCircle className="text-red-400" />
-                            <div>
-                                <p className="text-gray-300 text-sm">Threats Detected</p>
-                                <p className="text-2xl font-bold">{stats.threats}</p>
-                            </div>
+                        <div className="text-center">
+                            <p className="text-xs text-gray-400">Threats Detected</p>
+                            <p className="text-2xl font-bold text-red-400">{stats.threats}</p>
+                        </div>
+                        <div className="text-center">
+                            <p className="text-xs text-gray-400">Active Anomalies</p>
+                            <p className="text-2xl font-bold text-yellow-400">{stats.active_anomalies}</p>
                         </div>
                     </div>
                 </header>
 
                 {/* Main Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                     {/* 3D Threat Globe */}
-                    <div className="bg-white/5 rounded-xl border border-white/10 shadow-xl p-4 backdrop-blur-sm">
-                        <h2 className="text-xl font-semibold mb-2 text-gray-200">Global Threat Landscape</h2>
+                    <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+                        <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                            <Activity className="text-cyan-400" size={18} />
+                            Global Threat Landscape
+                        </h2>
                         <ThreatGlobe />
                     </div>
+
                     {/* Network Traffic Chart */}
-                    <div className="bg-white/5 rounded-xl border border-white/10 shadow-xl p-4 backdrop-blur-sm">
-                        <h2 className="text-xl font-semibold mb-4 text-gray-200">Network Traffic (Bytes)</h2>
-                        <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={chartData}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                                    <XAxis dataKey="time" stroke="#9CA3AF" />
-                                    <YAxis stroke="#9CA3AF" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none' }} />
-                                    <Line type="monotone" dataKey="bytes" stroke="#3B82F6" strokeWidth={2} dot={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
+                    <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+                        <h2 className="text-lg font-semibold mb-3">Network Traffic (Bytes)</h2>
+                        <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={chartData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                                <XAxis dataKey="time" tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                <YAxis tick={{ fontSize: 10, fill: '#9ca3af' }} />
+                                <Tooltip
+                                    contentStyle={{ backgroundColor: '#1f2937', border: '1px solid rgba(255,255,255,0.1)' }}
+                                />
+                                <Line type="monotone" dataKey="bytes" stroke="#22d3ee" strokeWidth={2} dot={false} />
+                                <Line type="monotone" dataKey="threat" stroke="#f87171" strokeWidth={2} dot={false} />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 </div>
 
                 {/* Recent Alerts */}
-                <div className="mt-8 bg-gray-800 p-6 rounded-lg shadow-lg overflow-hidden">
-                    <h2 className="text-xl font-semibold mb-4 text-gray-200">Recent Alerts</h2>
-                    <div className="overflow-y-auto h-64">
-                        <table className="w-full text-left">
+                <div className="bg-white/5 rounded-xl border border-white/10 p-4">
+                    <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                        <AlertCircle className="text-red-400" size={18} />
+                        Recent Alerts
+                    </h2>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
                             <thead>
-                                <tr className="text-gray-400 border-b border-gray-700">
-                                    <th className="pb-2">Time</th>
-                                    <th className="pb-2">Event</th>
-                                    <th className="pb-2">Source IP</th>
-                                    <th className="pb-2">Status</th>
+                                <tr className="text-gray-400 border-b border-white/10">
+                                    <th className="text-left pb-2">Time</th>
+                                    <th className="text-left pb-2">Event</th>
+                                    <th className="text-left pb-2">Source IP</th>
+                                    <th className="text-left pb-2">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {logs.slice(0, 10).map(log => (
-                                    <tr key={log.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                                        <td className="py-2 text-sm text-gray-300">{new Date(log.timestamp).toLocaleTimeString()}</td>
-                                        <td className="py-2 text-sm font-medium">{log.event_type}</td>
-                                        <td className="py-2 text-sm text-gray-300">{log.source_ip}</td>
+                                    <tr key={log.id} className="border-b border-white/5 hover:bg-white/5">
+                                        <td className="py-2">{new Date(log.timestamp).toLocaleTimeString()}</td>
+                                        <td className="py-2">{log.event_type}</td>
+                                        <td className="py-2">{log.source_ip}</td>
                                         <td className="py-2">
-                                            <span className={`px-2 py-1 rounded text-xs ${log.event_type === 'Normal' ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                                                log.event_type === 'Normal'
+                                                    ? 'bg-green-500/20 text-green-400'
+                                                    : 'bg-red-500/20 text-red-400'
+                                            }`}>
                                                 {log.event_type === 'Normal' ? 'Safe' : 'Critical'}
                                             </span>
                                         </td>
