@@ -12,7 +12,8 @@ LOG_FILE = os.path.join(DATA_DIR, "generated_logs.csv")
 
 os.makedirs(DATA_DIR, exist_ok=True)
 
-headers = ["timestamp", "source_ip", "destination_ip", "bytes", "protocol", "event_type", "details"]
+# Column names MUST match what train_model.py expects
+headers = ["timestamp", "source_ip", "destination_ip", "bytes_transferred", "protocol", "event_type", "details"]
 
 protocols = ["TCP", "UDP", "ICMP", "HTTP", "HTTPS"]
 events = ["Normal", "Failed Login", "Port Scan", "Malware Detected", "File Access"]
@@ -36,7 +37,7 @@ def generate_row():
         datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         src_ip,
         generate_ip(),
-        random.randint(100, 50000),
+        random.randint(100, 50000),   # bytes_transferred
         random.choice(protocols),
         event_type,
         details_map.get(event_type, "Routine traffic"),
