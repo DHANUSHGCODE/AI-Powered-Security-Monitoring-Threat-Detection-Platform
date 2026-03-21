@@ -1,9 +1,9 @@
+import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
 
-client = TestClient(app)
 
-def test_predict_endpoint():
+def test_predict_endpoint(client):
     payload = {
         "source_ip": "10.0.0.1",
         "destination_ip": "10.0.0.2",
@@ -18,3 +18,4 @@ def test_predict_endpoint():
     if resp.status_code == 200:
         body = resp.json()
         assert "is_anomaly" in body
+        assert "anomaly_score" in body
