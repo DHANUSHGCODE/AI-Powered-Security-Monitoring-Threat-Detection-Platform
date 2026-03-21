@@ -1,9 +1,9 @@
+import pytest
 from fastapi.testclient import TestClient
 from backend.main import app
 
-client = TestClient(app)
 
-def test_health_root():
+def test_health_root(client):
     resp = client.get("/")
     assert resp.status_code == 200
-    assert "status" in resp.json() or resp.text != ""
+    assert "message" in resp.json()
