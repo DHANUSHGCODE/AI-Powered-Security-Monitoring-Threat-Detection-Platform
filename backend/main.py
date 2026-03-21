@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -10,12 +11,45 @@ import sys
 
 # Add current directory to path so we can import from backend
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from database import SecurityLog, SessionLocal, engine, init_db
 import schemas
 
+# Load Model (Global)
+model = None
+encoders = None
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "../ai-model/isolation_forest_model.pkl")
+ENCODERS_PATH = os.path.join(BASE_DIR, "../ai-model/encoders.pkl")
+
+
+def load_model():
+    global model, encoders
+    if os.path.exists(MODEL_PATH):
+        try:
+            model = joblib.load(MODEL_PATH)
+            encoders = joblib.load(ENCODERS_PATH)
+            print("Model loaded successfully.")
+        except Exception as e:
+            print(f"Failed to load model: {e}")
+    else:
+        print("Model file not found. Run: python ai-model/train_model.py")
+
+
+# Fix: Use lifespan context manager instead of deprecated @app.on_event('startup')
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    load_model()
+    init_db()
+    yield
+
+
 # Fix #5: Corrected typo "Thread" -> "Threat"
-app = FastAPI(title="AI Security Monitor", description="Real-time Threat Detection API")
+app = FastAPI(
+    title="AI Security Monitor",
+    description="Real-time Threat Detection API",
+    lifespan=lifespan,
+)
 
 # Fix #4: Added Docker service hostname 'frontend' to CORS origins
 # so the frontend container can reach the backend inside Docker network
@@ -30,31 +64,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize DB
-init_db()
-
-# Load Model (Global)
-model = None
-encoders = None
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, "../ai-model/isolation_forest_model.pkl")
-ENCODERS_PATH = os.path.join(BASE_DIR, "../ai-model/encoders.pkl")
-
-def load_model():
-    global model, encoders
-    if os.path.exists(MODEL_PATH):
-        try:
-            model = joblib.load(MODEL_PATH)
-            encoders = joblib.load(ENCODERS_PATH)
-            print("Model loaded successfully.")
-        except Exception as e:
-            print(f"Failed to load model: {e}")
-    else:
-        print("Model file not found. Run: python ai-model/train_model.py")
-
-@app.on_event("startup")
-async def startup_event():
-    load_model()
 
 # Dependency
 def get_db():
@@ -64,9 +73,11 @@ def get_db():
     finally:
         db.close()
 
+
 @app.get("/")
 def read_root():
     return {"message": "AI Security Monitor API is running"}
+
 
 @app.post("/logs/", response_model=schemas.LogResponse)
 def create_log(log: schemas.LogCreate, db: Session = Depends(get_db)):
@@ -76,10 +87,12 @@ def create_log(log: schemas.LogCreate, db: Session = Depends(get_db)):
     db.refresh(db_log)
     return db_log
 
+
 @app.get("/logs/", response_model=List[schemas.LogResponse])
 def read_logs(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     logs = db.query(SecurityLog).order_by(SecurityLog.timestamp.desc()).offset(skip).limit(limit).all()
     return logs
+
 
 @app.post("/predict/", response_model=schemas.PredictionResponse)
 def predict_anomaly(request: schemas.PredictionRequest):
@@ -98,10 +111,9 @@ def predict_anomaly(request: schemas.PredictionRequest):
             [[request.bytes_transferred, protocol_encoded]],
             columns=['bytes', 'protocol_encoded']
         )
-        prediction = model.predict(features)[0]   # -1 = anomaly, 1 = normal
+        prediction = model.predict(features)[0]  # -1 = anomaly, 1 = normal
         score = float(model.decision_function(features)[0])
         is_anomaly = prediction == -1
-
         return {"is_anomaly": is_anomaly, "anomaly_score": score}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
