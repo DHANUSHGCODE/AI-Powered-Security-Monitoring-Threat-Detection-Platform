@@ -1,6 +1,7 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 from typing import Optional
+
 
 class LogBase(BaseModel):
     source_ip: str
@@ -10,18 +11,22 @@ class LogBase(BaseModel):
     event_type: str
     details: Optional[str] = None
 
+
 class LogCreate(LogBase):
     pass
+
 
 class LogResponse(LogBase):
     id: int
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    # Pydantic v2: use model_config instead of inner class Config
+    model_config = ConfigDict(from_attributes=True)
+
 
 class PredictionRequest(LogBase):
     pass
+
 
 class PredictionResponse(BaseModel):
     is_anomaly: bool
