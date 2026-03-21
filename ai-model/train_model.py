@@ -10,6 +10,7 @@ DATA_FILE = os.path.join(BASE_DIR, "../data/generated_logs.csv")
 MODEL_FILE = os.path.join(BASE_DIR, "isolation_forest_model.pkl")
 ENCODERS_FILE = os.path.join(BASE_DIR, "encoders.pkl")
 
+
 def train_model():
     if not os.path.exists(DATA_FILE):
         print(f"Data file {DATA_FILE} not found. Run log_generator.py first.")
@@ -29,9 +30,9 @@ def train_model():
     df['event_encoded'] = le_event.fit_transform(df['event_type'])
 
     # Select features for Isolation Forest
-    # Using bytes_transferred and protocol_encoded as primary anomaly indicators
+    # Use 'bytes' as column name to match the prediction endpoint in main.py
     features = df[['bytes_transferred', 'protocol_encoded']].rename(
-        columns={'bytes_transferred': 'bytes', 'protocol_encoded': 'protocol_encoded'}
+        columns={'bytes_transferred': 'bytes'}
     )
 
     print("Training Isolation Forest model...")
@@ -58,6 +59,7 @@ def train_model():
     print(f"Training complete. Detected {n_anomalies}/{n_total} anomalies ({100*n_anomalies/n_total:.1f}%)")
     print("Protocol classes:", list(le_protocol.classes_))
     print("Event classes:", list(le_event.classes_))
+
 
 if __name__ == "__main__":
     train_model()
